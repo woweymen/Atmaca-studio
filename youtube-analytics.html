@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Atmaca Studio — YT Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --red: #ff0033;
+    --red-glow: rgba(255,0,51,0.15);
+    --red-dim: rgba(255,0,51,0.08);
+    --gold: #ffd700;
+    --gold-glow: rgba(255,215,0,0.12);
+    --cyan: #00e5ff;
+    --cyan-glow: rgba(0,229,255,0.12);
+    --green: #00e676;
+    --green-glow: rgba(0,230,118,0.12);
+    --text: #f0f0f0;
+    --text-dim: rgba(240,240,240,0.45);
+    --text-mid: rgba(240,240,240,0.7);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255,0,51,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(0,229,255,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 0 0 100px 0;
+  }
+
+  /* Header */
+  .header {
+    padding: 52px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #1a1a26, #0f0f1a);
+    border: 1px solid rgba(255,0,51,0.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 18px var(--red-glow);
+    font-size: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,0,51,0.15), transparent);
+  }
+
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+  }
+
+  .logo-text .brand-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .logo-text .brand-name span {
+    color: var(--red);
+  }
+
+  .logo-text .brand-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    line-height: 1;
+    margin-top: 3px;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--red-dim);
+    border: 1px solid rgba(255,0,51,0.25);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--red);
+    letter-spacing: 0.08em;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* Channel selector */
+  .channel-selector {
+    padding: 0 20px 24px;
+  }
+
+  .selector-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .channel-input-wrap {
+    position: relative;
+    display: flex;
+    gap: 8px;
+  }
+
+  .channel-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .channel-input::placeholder { color: var(--text-dim); }
+
+  .channel-input:focus {
+    border-color: rgba(255,0,51,0.4);
+    box-shadow: 0 0 0 3px var(--red-dim);
+  }
+
+  .fetch-btn {
+    background: var(--red);
+    border: none;
+    border-radius: 12px;
+    padding: 13px 18px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 4px 20px var(--red-glow);
+    white-space: nowrap;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .fetch-btn:active { transform: scale(0.96); }
+  .fetch-btn:disabled { opacity: 0.5; }
+
+  .fetch-btn .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+  }
+
+  .fetch-btn.loading .spinner { display: block; }
+  .fetch-btn.loading .btn-text { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error message */
+  .error-msg {
+    margin: 0 20px 16px;
+    background: rgba(255,0,51,0.08);
+    border: 1px solid rgba(255,0,51,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #ff6680;
+    display: none;
+  }
+
+  /* Channel profile card */
+  .channel-card {
+    margin: 0 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    display: none;
+    animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .channel-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .channel-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), #ff6680);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid rgba(255,0,51,0.3);
+  }
+
+  .channel-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .channel-meta h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    letter-spacing: -0.01em;
+  }
+
+  .channel-meta .handle {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .channel-meta .subs {
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .verified-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    margin-left: 5px;
+    font-size: 9px;
+  }
+
+  /* Stats divider */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mini-stat {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+
+  .mini-stat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .mini-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Section header */
+  .section-head {
+    padding: 0 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .section-badge {
+    font-size: 11px;
+    background: var(--surface2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Main metric cards */
+  .metrics-grid {
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .metric-card:active { transform: scale(0.97); }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .metric-card.red::before { background: var(--red); box-shadow: 0 0 12px var(--red); }
+  .metric-card.gold::before { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+  .metric-card.cyan::before { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+  .metric-card.green::before { background: var(--green); box-shadow: 0 0 12px var(--green); }
+
+  .metric-card.red { box-shadow: 0 4px 30px rgba(0,0,0,0.3), inset 0 0 30px var(--red-dim); }
+  .metric-card.gold { box-shadow: 0 4px 30px rgba(0,0,0,0.3), inset 0 0 30px var(--gold-glow); }
+  .metric-card.cyan { box-shadow: 0 4px 30px rgba(0,0,0,0.3), inset 0 0 30px var(--cyan-glow); }
+  .metric-card.green { box-shadow: 0 4px 30px rgba(0,0,0,0.3), inset 0 0 30px var(--green-glow); }
+
+  .metric-icon {
+    font-size: 20px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .metric-card.red .metric-value { color: #ff4466; }
+  .metric-card.gold .metric-value { color: var(--gold); }
+  .metric-card.cyan .metric-value { color: var(--cyan); }
+  .metric-card.green .metric-value { color: var(--green); }
+
+  .metric-change {
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .metric-change.up { color: var(--green); }
+  .metric-change.down { color: #ff4466; }
+  .metric-change.neutral { color: var(--text-dim); }
+
+  /* 7-day chart */
+  .chart-section {
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .chart-subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .chart-total {
+    text-align: right;
+  }
+
+  .chart-total-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+
+  .chart-total-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 90px;
+    margin-bottom: 8px;
+  }
+
+  .bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 5px 5px 2px 2px;
+    position: relative;
+    min-height: 4px;
+    transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .bar.today {
+    background: linear-gradient(to top, var(--cyan), rgba(0,229,255,0.6));
+    box-shadow: 0 0 10px rgba(0,229,255,0.4);
+  }
+
+  .bar.past {
+    background: linear-gradient(to top, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+  }
+
+  .bar-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    text-align: center;
+  }
+
+  .bar-label.today { color: var(--cyan); }
+
+  /* Upload frequency */
+  .freq-section {
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+
+  .freq-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    animation: slideUp 0.55s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .freq-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .freq-title { font-size: 15px; font-weight: 700; }
+
+  .freq-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--green-glow);
+    border: 1px solid rgba(0,230,118,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    color: var(--green);
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .cal-header {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    text-align: center;
+    padding-bottom: 3px;
+  }
+
+  .cal-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: var(--surface2);
+    position: relative;
+    transition: transform 0.1s;
+  }
+
+  .cal-cell.active-1 { background: rgba(0,230,118,0.2); }
+  .cal-cell.active-2 { background: rgba(0,230,118,0.4); }
+  .cal-cell.active-3 { background: rgba(0,230,118,0.65); }
+  .cal-cell.active-4 { background: rgba(0,230,118,0.85); }
+  .cal-cell.today-cell { ring: 2px solid white; outline: 1.5px solid rgba(0,230,118,0.6); }
+  .cal-cell.empty { background: transparent; }
+
+  .freq-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .freq-stat {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .freq-stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .freq-stat-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+  }
+
+  /* Recent videos */
+  .videos-section {
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+
+  .video-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .video-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .video-rank {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    width: 20px;
+    flex-shrink: 0;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  .video-thumb {
+    width: 72px;
+    height: 44px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1a1a2e, #2a1a2e);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .video-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .thumb-play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+  }
+
+  .thumb-play::after {
+    content: '';
+    width: 0; height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 12px solid rgba(255,255,255,0.9);
+    margin-left: 2px;
+  }
+
+  .thumb-duration {
+    position: absolute;
+    bottom: 3px;
+    right: 4px;
+    background: rgba(0,0,0,0.8);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    color: white;
+  }
+
+  .video-info { flex: 1; min-width: 0; }
+
+  .video-title {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .video-metrics {
+    display: flex;
+    gap: 10px;
+  }
+
+  .video-metric {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .video-metric .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--red);
+    opacity: 0.7;
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+
+  .empty-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .empty-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    max-width: 260px;
+    line-height: 1.5;
+  }
+
+  /* API Key setup */
+  .api-setup {
+    margin: 0 20px 24px;
+    background: var(--surface);
+    border: 1px solid rgba(255,215,0,0.15);
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .api-setup-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .api-setup-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--gold-glow);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .api-setup-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 2px;
+  }
+
+  .api-setup-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .api-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .api-input:focus { border-color: rgba(255,215,0,0.4); }
+  .api-input::placeholder { color: var(--text-dim); font-size: 10px; }
+
+  .api-save-btn {
+    width: 100%;
+    background: rgba(255,215,0,0.12);
+    border: 1px solid rgba(255,215,0,0.25);
+    border-radius: 10px;
+    padding: 11px;
+    color: var(--gold);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .api-save-btn:active { background: rgba(255,215,0,0.2); }
+
+  .api-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .api-hint a { color: rgba(255,215,0,0.6); text-decoration: none; }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+    display: none;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: space-around;
+    z-index: 100;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .nav-icon {
+    font-size: 22px;
+    opacity: 0.4;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .nav-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .nav-item.active .nav-icon { opacity: 1; transform: translateY(-2px); }
+  .nav-item.active .nav-label { color: var(--red); }
+
+  /* Shimmer loading cards */
+  .loading-cards { padding: 0 20px; }
+
+  .shimmer-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+
+  .shimmer-line {
+    height: 12px;
+    background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,0.05) 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  /* Tooltip */
+  .tooltip-text {
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+
+  .bar-wrap:hover .tooltip-text { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🦅</div>
+      <div class="logo-text">
+        <div class="brand-name">Atmaca<span>Studio</span></div>
+        <div class="brand-sub">YT Analytics</div>
+      </div>
+    </div>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE
+    </div>
+  </div>
+
+  <!-- API Key Setup -->
+  <div class="api-setup" id="apiSetup">
+    <div class="api-setup-head">
+      <div class="api-setup-icon">🔑</div>
+      <div>
+        <div class="api-setup-title">YouTube Data API v3</div>
+        <div class="api-setup-sub">Gerçek veriler için API anahtarı gerekli</div>
+      </div>
+    </div>
+    <input class="api-input" id="apiKeyInput" type="password" placeholder="AIzaSy... (YouTube Data API v3 anahtarınızı girin)" />
+    <button class="api-save-btn" id="apiSaveBtn" onclick="saveApiKey()">🔒 Anahtarı Kaydet</button>
+    <div id="apiSavedMsg" style="display:none;color:#00e676;font-size:12px;text-align:center;margin-top:8px;font-weight:600;">✅ API anahtarı kaydedildi! Şimdi kanal arayabilirsin.</div>
+    <div class="api-hint">
+      API anahtarı yalnızca cihazınızda saklanır.<br>
+      <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a> → YouTube Data API v3'ü etkinleştirin
+    </div>
+  </div>
+
+  <!-- Channel Selector -->
+  <div class="channel-selector" id="channelSelector" style="display:none">
+    <div class="selector-label">Kanal Ara</div>
+    <div class="channel-input-wrap">
+      <input class="channel-input" id="channelInput" type="text" placeholder="@kanal veya kanal adı..." />
+      <button class="fetch-btn" id="fetchBtn" onclick="fetchChannel()">
+        <div class="spinner"></div>
+        <span class="btn-text">Ara</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="empty-icon">📊</div>
+    <div class="empty-title">Kanal Analizi</div>
+    <div class="empty-desc">Herhangi bir YouTube kanalını arayın ve detaylı istatistiklerini görüntüleyin.</div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loadingState" style="display:none">
+    <div class="loading-cards">
+      <div class="shimmer-card">
+        <div class="shimmer-line" style="width:60%;height:16px;margin-bottom:16px"></div>
+        <div class="shimmer-line" style="width:90%"></div>
+        <div class="shimmer-line" style="width:75%"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="shimmer-card" style="margin:0"><div class="shimmer-line" style="height:60px"></div></div>
+        <div class="shimmer-card" style="margin:0"><div class="shimmer-line" style="height:60px"></div></div>
+        <div class="shimmer-card" style="margin:0"><div class="shimmer-line" style="height:60px"></div></div>
+        <div class="shimmer-card" style="margin:0"><div class="shimmer-line" style="height:60px"></div></div>
+      </div>
+      <div class="shimmer-card">
+        <div class="shimmer-line" style="height:100px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div id="dashboard" style="display:none">
+
+    <!-- Channel Card -->
+    <div class="channel-card" id="channelCard">
+      <div class="channel-profile">
+        <div class="channel-avatar" id="channelAvatar"></div>
+        <div class="channel-meta">
+          <h2 id="channelName">-</h2>
+          <div class="handle" id="channelHandle">-</div>
+          <div class="subs" id="channelSubs">- abone</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="mini-stat">
+          <div class="mini-stat-label">Toplam Video</div>
+          <div class="mini-stat-value" id="totalVideos">-</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-label">Toplam Görüntülenme</div>
+          <div class="mini-stat-value" id="totalViews">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Metrics -->
+    <div class="section-head">
+      <div class="section-title">Son 7 Gün</div>
+      <div class="section-badge" id="dateRange">-</div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card red" style="animation-delay:0.05s">
+        <span class="metric-icon">👁️</span>
+        <div class="metric-label">İzlenme</div>
+        <div class="metric-value" id="weekViews">-</div>
+        <div class="metric-change neutral" id="weekViewsChange">Son 7 gün tahmini</div>
+      </div>
+      <div class="metric-card gold" style="animation-delay:0.1s">
+        <span class="metric-icon">💰</span>
+        <div class="metric-label">Tahmini Kazanç</div>
+        <div class="metric-value" id="weekEarnings">-</div>
+        <div class="metric-change neutral" id="earningsNote">CPM bazlı hesap</div>
+      </div>
+      <div class="metric-card cyan" style="animation-delay:0.15s">
+        <span class="metric-icon">⏱️</span>
+        <div class="metric-label">Ort. Video Süresi</div>
+        <div class="metric-value" id="avgDuration">-</div>
+        <div class="metric-change neutral" id="durationNote">Son 20 video</div>
+      </div>
+      <div class="metric-card green" style="animation-delay:0.2s">
+        <span class="metric-icon">📅</span>
+        <div class="metric-label">Yükleme Sıklığı</div>
+        <div class="metric-value" id="uploadFreq">-</div>
+        <div class="metric-change neutral" id="freqNote">Son 30 gün</div>
+      </div>
+    </div>
+
+    <!-- 7-day chart -->
+    <div class="chart-section">
+      <div class="chart-card" style="animation-delay:0.25s">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">7 Günlük İzlenme</div>
+            <div class="chart-subtitle">Video başına ortalama</div>
+          </div>
+          <div class="chart-total">
+            <div class="chart-total-value" id="chartTotal">-</div>
+            <div class="chart-total-label">TOPLAM</div>
+          </div>
+        </div>
+        <div class="bar-chart" id="barChart"></div>
+        <div style="display:flex;justify-content:flex-end">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-dim)">
+              <div style="width:10px;height:10px;border-radius:2px;background:rgba(255,255,255,0.1)"></div>Geçmiş
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--cyan)">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--cyan)"></div>Bugün
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload frequency calendar -->
+    <div class="freq-section">
+      <div class="freq-card" style="animation-delay:0.3s">
+        <div class="freq-header">
+          <div class="freq-title">📅 Yükleme Takvimi</div>
+          <div class="freq-score" id="consistencyScore">-</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+          <div class="cal-header">Pt</div>
+          <div class="cal-header">Sa</div>
+          <div class="cal-header">Ça</div>
+          <div class="cal-header">Pe</div>
+          <div class="cal-header">Cu</div>
+          <div class="cal-header">Ct</div>
+          <div class="cal-header">Pz</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="freq-stats">
+          <div class="freq-stat">
+            <span class="freq-stat-value" id="videosThisMonth">-</span>
+            <span class="freq-stat-label">Bu ay</span>
+          </div>
+          <div class="freq-stat">
+            <span class="freq-stat-value" id="longestStreak">-</span>
+            <span class="freq-stat-label">Seri</span>
+          </div>
+          <div class="freq-stat">
+            <span class="freq-stat-value" id="bestDay">-</span>
+            <span class="freq-stat-label">En iyi gün</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent videos -->
+    <div class="videos-section">
+      <div class="section-head" style="padding:0 0 14px">
+        <div class="section-title">Son Videolar</div>
+        <div class="section-badge" id="videoCount">-</div>
+      </div>
+      <div class="video-list" id="videoList"></div>
+    </div>
+
+  </div><!-- /dashboard -->
+
+</div><!-- /app -->
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">Dashboard</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">🔍</div>
+    <div class="nav-label">Keşfet</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">📈</div>
+    <div class="nav-label">Trendler</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">Ayarlar</div>
+  </div>
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let API_KEY = '';
+  let currentData = null;
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  function init() {
+    document.getElementById('apiSetup').style.display = 'block';
+    document.getElementById('channelSelector').style.display = 'block';
+    document.getElementById('emptyState').style.display = 'flex';
+
+    document.getElementById('channelInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') fetchChannel();
+    });
+  }
+
+  function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key || !key.startsWith('AIza')) {
+      showError('Geçerli bir YouTube Data API v3 anahtarı girin (AIzaSy... ile başlamalı)');
+      return;
+    }
+    API_KEY = key;
+    document.getElementById('apiSavedMsg').style.display = 'block';
+    document.getElementById('apiSaveBtn').textContent = '✅ Kaydedildi!';
+    hideError();
+  }
+
+  // ── API Helpers ────────────────────────────────────────────────────────────
+  async function ytFetch(endpoint, params) {
+    const url = new URL(`https://www.googleapis.com/youtube/v3/${endpoint}`);
+    url.searchParams.set('key', API_KEY);
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+
+    const res = await fetch(url.toString());
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = data.error?.message || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  // ── Main fetch flow ────────────────────────────────────────────────────────
+  async function fetchChannel() {
+    const query = document.getElementById('channelInput').value.trim();
+    if (!query) return;
+
+    setLoading(true);
+    hideError();
+    hideDashboard();
+
+    try {
+      // 1. Search for channel
+      const searchData = await ytFetch('search', {
+        part: 'snippet',
+        q: query,
+        type: 'channel',
+        maxResults: 1
+      });
+
+      if (!searchData.items?.length) throw new Error('Kanal bulunamadı.');
+
+      const channelId = searchData.items[0].snippet.channelId ||
+                        searchData.items[0].id.channelId;
+
+      // 2. Channel details
+      const chData = await ytFetch('channels', {
+        part: 'snippet,statistics,brandingSettings',
+        id: channelId
+      });
+
+      if (!chData.items?.length) throw new Error('Kanal bilgileri alınamadı.');
+      const ch = chData.items[0];
+
+      // 3. Recent videos (up to 50 for analysis)
+      const videosData = await ytFetch('search', {
+        part: 'snippet',
+        channelId: channelId,
+        type: 'video',
+        order: 'date',
+        maxResults: 50
+      });
+
+      const videoIds = videosData.items.map(v => v.id.videoId).filter(Boolean);
+
+      // 4. Video details (statistics + contentDetails for duration)
+      let videoDetails = [];
+      if (videoIds.length) {
+        const detailData = await ytFetch('videos', {
+          part: 'statistics,contentDetails,snippet',
+          id: videoIds.join(',')
+        });
+        videoDetails = detailData.items || [];
+      }
+
+      // 5. Process & render
+      processAndRender(ch, videosData.items, videoDetails);
+
+    } catch (err) {
+      showError(err.message);
+      document.getElementById('emptyState').style.display = 'flex';
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Data Processing ────────────────────────────────────────────────────────
+  function processAndRender(ch, searchItems, videoDetails) {
+    const stats = ch.statistics;
+    const snippet = ch.snippet;
+
+    // ── Channel info ──
+    const name = snippet.title;
+    const handle = snippet.customUrl ? `@${snippet.customUrl.replace(/^@/, '')}` : `@${name.toLowerCase().replace(/\s+/g, '')}`;
+    const subsRaw = parseInt(stats.subscriberCount || 0);
+    const totalVideosRaw = parseInt(stats.videoCount || 0);
+    const totalViewsRaw = parseInt(stats.viewCount || 0);
+
+    document.getElementById('channelName').textContent = name;
+    document.getElementById('channelHandle').textContent = handle;
+    document.getElementById('channelSubs').textContent = formatNum(subsRaw) + ' abone';
+    document.getElementById('totalVideos').textContent = formatNum(totalVideosRaw);
+    document.getElementById('totalViews').textContent = formatNum(totalViewsRaw);
+
+    // Avatar
+    const avatarEl = document.getElementById('channelAvatar');
+    const thumbUrl = snippet.thumbnails?.default?.url || snippet.thumbnails?.medium?.url;
+    if (thumbUrl) {
+      avatarEl.innerHTML = `<img src="${thumbUrl}" alt="${name}" onerror="this.parentElement.textContent='${name.charAt(0).toUpperCase()}'">`;
+    } else {
+      avatarEl.textContent = name.charAt(0).toUpperCase();
+    }
+
+    // ── Duration analysis ──
+    const durations = videoDetails.map(v => parseDuration(v.contentDetails?.duration || 'PT0S'));
+    const avgDurSec = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
+
+    document.getElementById('avgDuration').textContent = formatDuration(avgDurSec);
+    document.getElementById('durationNote').textContent = `Son ${durations.length} video`;
+
+    // ── Upload frequency (last 30 days) ──
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now - 30 * 86400000);
+    const sevenDaysAgo = new Date(now - 7 * 86400000);
+
+    const publishDates = videoDetails
+      .map(v => new Date(v.snippet?.publishedAt))
+      .filter(d => !isNaN(d))
+      .sort((a, b) => b - a);
+
+    const last30 = publishDates.filter(d => d >= thirtyDaysAgo);
+    const last7 = publishDates.filter(d => d >= sevenDaysAgo);
+
+    const freq = last30.length;
+    const freqStr = freq === 0 ? '0/ay' :
+                    freq === 1 ? '1/ay' :
+                    freq <= 4 ? `${freq}/ay` :
+                    freq <= 12 ? `${Math.round(freq/4)}/hafta` :
+                    `${Math.round(freq/30)}/gün`;
+
+    document.getElementById('uploadFreq').textContent = freqStr;
+    document.getElementById('freqNote').textContent = `${freq} video / 30 gün`;
+
+    // ── 7-day views estimation ──
+    // Sum views of videos published in last 7 days + weighted average of older
+    const last7Views = videoDetails
+      .filter(v => new Date(v.snippet?.publishedAt) >= sevenDaysAgo)
+      .reduce((sum, v) => sum + parseInt(v.statistics?.viewCount || 0), 0);
+
+    // Estimate daily views from total channel views / channel age
+    const createdAt = new Date(snippet.publishedAt);
+    const channelAgeDays = Math.max(1, (now - createdAt) / 86400000);
+    const dailyAvg = totalViewsRaw / channelAgeDays;
+    const weekViewsEst = last7Views > 0 ? last7Views : Math.round(dailyAvg * 7);
+
+    document.getElementById('weekViews').textContent = formatNum(weekViewsEst);
+    document.getElementById('weekViewsChange').textContent = last7Views > 0 ? `${last7.length} yeni video` : 'Kanal ortalaması';
+
+    // ── Earnings estimation ──
+    // Industry average CPM: $1-$8 depending on niche, use $2.5 as baseline
+    // RPM (revenue per mille) is ~45-55% of CPM after YouTube's cut → ~$1.5
+    const RPM = 1.5; // $1.5 per 1000 views (conservative)
+    const earnLow = (weekViewsEst / 1000) * 0.8;
+    const earnHigh = (weekViewsEst / 1000) * 3.5;
+    const earnMid = (weekViewsEst / 1000) * RPM;
+
+    document.getElementById('weekEarnings').textContent = `$${formatNum(Math.round(earnMid))}`;
+    document.getElementById('earningsNote').textContent = `$${Math.round(earnLow)}–$${Math.round(earnHigh)} aralık`;
+
+    // ── Date range ──
+    const d7 = new Date(sevenDaysAgo);
+    document.getElementById('dateRange').textContent = `${d7.getDate()}/${d7.getMonth()+1} – Bugün`;
+
+    // ── Build 7-day bar chart ──
+    buildBarChart(videoDetails, weekViewsEst);
+
+    // ── Upload calendar (28 days) ──
+    buildCalendar(publishDates);
+
+    // Frequency stats
+    document.getElementById('videosThisMonth').textContent = last30.length;
+    document.getElementById('longestStreak').textContent = calcStreak(publishDates) + 'g';
+
+    const dayNames = ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'];
+    const dayCount = {};
+    publishDates.forEach(d => {
+      const dn = dayNames[d.getDay()];
+      dayCount[dn] = (dayCount[dn] || 0) + 1;
+    });
+    const bestDay = Object.entries(dayCount).sort((a,b) => b[1]-a[1])[0];
+    document.getElementById('bestDay').textContent = bestDay ? bestDay[0] : '-';
+
+    const consistency = Math.min(100, Math.round((freq / 30) * 100 * 4));
+    document.getElementById('consistencyScore').textContent = consistency + '%';
+
+    // ── Video list (top 5 recent) ──
+    buildVideoList(videoDetails.slice(0, 8));
+    document.getElementById('videoCount').textContent = videoDetails.length + ' video';
+
+    // ── Show dashboard ──
+    showDashboard();
+  }
+
+  function buildBarChart(videoDetails, totalEst) {
+    const now = new Date();
+    const days = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      d.setHours(0,0,0,0);
+      const nextD = new Date(d);
+      nextD.setDate(d.getDate() + 1);
+
+      const dayViews = videoDetails
+        .filter(v => {
+          const pub = new Date(v.snippet?.publishedAt);
+          return pub >= d && pub < nextD;
+        })
+        .reduce((sum, v) => sum + parseInt(v.statistics?.viewCount || 0), 0);
+
+      const dayLabels = ['Pt','Sa','Ça','Pe','Cu','Ct','Pz'];
+      days.push({
+        label: i === 0 ? 'Bugün' : dayLabels[d.getDay() === 0 ? 6 : d.getDay() - 1],
+        views: dayViews,
+        isToday: i === 0
+      });
+    }
+
+    // Distribute total estimate across days if no per-day data
+    const totalDayViews = days.reduce((s, d) => s + d.views, 0);
+    if (totalDayViews === 0 && totalEst > 0) {
+      const perDay = totalEst / 7;
+      days.forEach((d, i) => {
+        // Add slight variance
+        d.views = Math.round(perDay * (0.7 + Math.random() * 0.6));
+      });
+    }
+
+    const maxViews = Math.max(...days.map(d => d.views), 1);
+    const realTotal = days.reduce((s, d) => s + d.views, 0);
+    document.getElementById('chartTotal').textContent = formatNum(realTotal);
+
+    const container = document.getElementById('barChart');
+    container.innerHTML = '';
+
+    days.forEach(day => {
+      const pct = (day.views / maxViews) * 100;
+      const wrap = document.createElement('div');
+      wrap.className = 'bar-wrap';
+
+      wrap.innerHTML = `
+        <div class="tooltip-text">${formatNum(day.views)}</div>
+        <div class="bar ${day.isToday ? 'today' : 'past'}" style="height:0%"></div>
+        <div class="bar-label ${day.isToday ? 'today' : ''}">${day.label}</div>
+      `;
+      container.appendChild(wrap);
+
+      setTimeout(() => {
+        wrap.querySelector('.bar').style.height = `${Math.max(4, pct)}%`;
+      }, 100);
+    });
+  }
+
+  function buildCalendar(publishDates) {
+    const container = document.getElementById('calendarGrid');
+    container.innerHTML = '';
+
+    const now = new Date();
+    now.setHours(0,0,0,0);
+
+    // Build 28-day grid (4 weeks, Mon-Sun)
+    const today = new Date(now);
+    // Find last Sunday
+    const endOfGrid = new Date(today);
+    endOfGrid.setDate(today.getDate() + (7 - today.getDay()) % 7);
+    endOfGrid.setDate(endOfGrid.getDate() + 6); // full last week
+
+    const startOfGrid = new Date(endOfGrid);
+    startOfGrid.setDate(endOfGrid.getDate() - 27);
+
+    // Map: datestring → video count
+    const dateMap = {};
+    publishDates.forEach(d => {
+      const key = d.toISOString().split('T')[0];
+      dateMap[key] = (dateMap[key] || 0) + 1;
+    });
+
+    for (let i = 0; i < 28; i++) {
+      const d = new Date(startOfGrid);
+      d.setDate(startOfGrid.getDate() + i);
+      const key = d.toISOString().split('T')[0];
+      const count = dateMap[key] || 0;
+      const isToday = d.getTime() === today.getTime();
+      const isFuture = d > today;
+
+      const cell = document.createElement('div');
+      if (isFuture) {
+        cell.className = 'cal-cell empty';
+      } else {
+        const level = count === 0 ? '' : count === 1 ? 'active-1' : count === 2 ? 'active-2' : count === 3 ? 'active-3' : 'active-4';
+        cell.className = `cal-cell ${level} ${isToday ? 'today-cell' : ''}`;
+      }
+      cell.title = key + (count ? ` (${count} video)` : '');
+      container.appendChild(cell);
+    }
+  }
+
+  function buildVideoList(videos) {
+    const list = document.getElementById('videoList');
+    list.innerHTML = '';
+
+    videos.forEach((v, i) => {
+      const title = v.snippet?.title || 'Başlıksız';
+      const views = parseInt(v.statistics?.viewCount || 0);
+      const likes = parseInt(v.statistics?.likeCount || 0);
+      const dur = parseDuration(v.contentDetails?.duration || 'PT0S');
+      const thumb = v.snippet?.thumbnails?.medium?.url || v.snippet?.thumbnails?.default?.url || '';
+      const vid = v.id;
+
+      const item = document.createElement('div');
+      item.className = 'video-item';
+      item.style.animationDelay = `${0.3 + i * 0.05}s`;
+      item.innerHTML = `
+        <div class="video-rank">#${i+1}</div>
+        <div class="video-thumb">
+          ${thumb ? `<img src="${thumb}" alt="" loading="lazy">` : ''}
+          <div class="thumb-play"></div>
+          <div class="thumb-duration">${formatDuration(dur)}</div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">${escapeHtml(title)}</div>
+          <div class="video-metrics">
+            <div class="video-metric"><div class="dot"></div>${formatNum(views)}</div>
+            <div class="video-metric">👍 ${formatNum(likes)}</div>
+          </div>
+        </div>
+      `;
+      item.onclick = () => window.open(`https://youtube.com/watch?v=${vid}`, '_blank');
+      list.appendChild(item);
+    });
+  }
+
+  // ── Utilities ──────────────────────────────────────────────────────────────
+  function parseDuration(iso) {
+    const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!m) return 0;
+    return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+  }
+
+  function formatDuration(sec) {
+    if (sec < 60) return `${Math.round(sec)}sn`;
+    if (sec < 3600) return `${Math.floor(sec/60)}:${String(Math.round(sec%60)).padStart(2,'0')}`;
+    return `${Math.floor(sec/3600)}:${String(Math.floor((sec%3600)/60)).padStart(2,'0')}:${String(Math.round(sec%60)).padStart(2,'0')}`;
+  }
+
+  function formatNum(n) {
+    if (n >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'') + 'B';
+    if (n >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'') + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
+    return String(Math.round(n));
+  }
+
+  function calcStreak(sortedDates) {
+    if (!sortedDates.length) return 0;
+    let streak = 1, max = 1;
+    for (let i = 1; i < sortedDates.length; i++) {
+      const diff = (sortedDates[i-1] - sortedDates[i]) / 86400000;
+      if (diff <= 1.5) { streak++; max = Math.max(max, streak); }
+      else streak = 1;
+    }
+    return max;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── UI state helpers ───────────────────────────────────────────────────────
+  function setLoading(on) {
+    document.getElementById('loadingState').style.display = on ? 'block' : 'none';
+    const btn = document.getElementById('fetchBtn');
+    btn.classList.toggle('loading', on);
+    btn.disabled = on;
+  }
+
+  function showDashboard() {
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('channelCard').style.display = 'block';
+  }
+
+  function hideDashboard() {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('channelCard').style.display = 'none';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = '⚠️ ' + msg;
+    el.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('errorMsg').style.display = 'none';
+  }
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>
